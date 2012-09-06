@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F171D2015ED38540037379A /* FacebookPlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F171D1E15ED38540037379A /* FacebookPlugin.mm */; };
 		2A68590615C1E37E001D4EDD /* FBSettings+Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A68590515C1E37E001D4EDD /* FBSettings+Internal.h */; };
 		5F7CB4201553ACC600C183CF /* FBLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F7CB41E1553ACC600C183CF /* FBLogger.h */; };
 		5F7CB4211553ACC600C183CF /* FBLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F7CB41F1553ACC600C183CF /* FBLogger.m */; };
@@ -174,6 +175,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1F171D1E15ED38540037379A /* FacebookPlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = FacebookPlugin.mm; path = plugin/FacebookPlugin.mm; sourceTree = "<group>"; };
 		2A68590515C1E37E001D4EDD /* FBSettings+Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FBSettings+Internal.h"; sourceTree = "<group>"; };
 		5F7CB41E1553ACC600C183CF /* FBLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBLogger.h; sourceTree = "<group>"; };
 		5F7CB41F1553ACC600C183CF /* FBLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBLogger.m; sourceTree = "<group>"; };
@@ -466,6 +468,7 @@
 		32C88DFF0371C24200C91783 /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				1F171D1E15ED38540037379A /* FacebookPlugin.mm */,
 				AA747D9E0F9514B9006C5449 /* facebook_ios_sdk_Prefix.pch */,
 			);
 			name = "Other Sources";
@@ -802,6 +805,7 @@
 				DDB7C34D15A6181100C8DCE6 /* FBSettings.m in Sources */,
 				85E4AC7815B63CB600F17346 /* FBUserSettingsViewController.m in Sources */,
 				85E4AC7E15B63CC500F17346 /* FBViewController.m in Sources */,
+				1F171D2015ED38540037379A /* FacebookPlugin.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -831,10 +835,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					"$(ARCHS_STANDARD_32_BIT)",
-					armv6,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = /tmp/facebook_ios_sdk.dst;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -854,10 +855,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = (
-					"$(ARCHS_STANDARD_32_BIT)",
-					armv6,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				DSTROOT = /tmp/facebook_ios_sdk.dst;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
