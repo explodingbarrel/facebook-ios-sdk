@@ -1,6 +1,9 @@
 #import "Facebook.h"
 
-void UnitySendMessage(const char* name, const char* fn, const char* data);
+extern "C"
+{
+    void UnitySendMessage(const char* name, const char* fn, const char* data);
+}
 
 @interface Plugin : NSObject<FBSessionDelegate, FBDialogDelegate>
 
