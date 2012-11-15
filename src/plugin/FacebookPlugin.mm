@@ -1,5 +1,6 @@
 #import "Facebook.h"
-#import "../JSON/JSON.h"
+
+void UnitySendMessage(const char* name, const char* fn, const char* data);
 
 @interface Plugin : NSObject<FBSessionDelegate, FBDialogDelegate>
 
@@ -38,20 +39,19 @@
 {
 	NSString* accessToken = [ facebook accessToken ];
 	NSLog(@"@fbDidLogin: %@", accessToken );
-	[[NSUserDefaults standardUserDefaults] setObject:accessToken forKey:@"access_token" ];	
-	[[NSUserDefaults standardUserDefaults] setBool:true forKey:@"facebook_screen_done"];
+    UnitySendMessage("fb_callbacks", "OnAuthorize", [accessToken UTF8String]);
 }
 
 - (void)fbDidNotLogin:(BOOL)cancelled
 {
 	NSLog(@"fbDidNotLogin %d", cancelled ? 1 : 0);
-	[[NSUserDefaults standardUserDefaults] setBool:true forKey:@"facebook_screen_done"];	
+    UnitySendMessage("fb_callbacks", "OnAuthorizeFailed", cancelled ? "1" : "0");
 }
 
 - (void)fbDidLogout
 {
 	NSLog(@"fbDidLogout");
-//	[[NSUserDefaults standardUserDefaults] setBool:true forKey:@"facebook_screen_done"];	
+    UnitySendMessage("fb_callbacks", "OnLogout", "" );
 }
 
 - (void) dialog: (NSString*)action params:(NSMutableDictionary*)params 
@@ -75,11 +75,11 @@
 	facebook.accessToken = token;
 }
 
-- (void) login
+- (void) login:(NSString*)scope
 {
 	if ( facebook )
 	{
-		NSArray* permissions = [NSArray arrayWithObjects:@"publish_actions",nil];
+        NSArray* permissions = [scope componentsSeparatedByString:@","];
 		[facebook authorize:permissions];
 	}
 }
@@ -128,12 +128,12 @@ extern "C"
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	//
-    void _FacebookLogin()
+    void _FacebookLogin(const char* scope)
 	{
         NSLog(@"-> _FacebookLogin \n");
 		if ( plugin != nil )
 		{
-			[plugin login ];
+			[plugin login:[NSString stringWithUTF8String:scope] ];
 		}
 	}
 	
@@ -141,41 +141,7 @@ extern "C"
 	//
 	void _FacebookUI(const char* request, const char* data)
 	{
-        NSLog(@"-> _FacebookUI \n");
-		
-		//NSString* requestStr = [NSString stringWithUTF8String:request];
-		NSString* dataStr = [NSString stringWithUTF8String:data];
-		
-		SBJSON *jsonParser = [[SBJSON new] autorelease];
-		NSDictionary* result = (NSDictionary*)[jsonParser objectWithString:dataStr];
-		NSMutableDictionary* params = [NSMutableDictionary dictionaryWithCapacity:25];
-		
-		// convert to json strings
-		for (NSString* key in result.keyEnumerator) {
-			//NSLog(@"key=> %@", key);
-			id value = [result objectForKey:key];
-			if ( ![value isKindOfClass:[NSString class]] )
-			{
-				// convert to json
-				NSString* str = [jsonParser stringWithObject:value];
-				[params setObject:str forKey:key];
-				NSLog(@"%@ -> %@", key, str);
-			}
-			else {
-				[params setObject:value forKey:key];
-				NSLog(@"%@ -> %@", key, value);
-			}
-            
-			
-		}
-		
-		// set access token
-		NSString* token = [ [NSUserDefaults standardUserDefaults] stringForKey:@"access_token" ];
-		[params setObject:token forKey:@"access_token"];
         
-		NSString* action = [params objectForKey:@"method"];
-		NSLog(@"running dialog %@", action);
-		[plugin dialog:action params:params];
 	}
     
     //////////////////////////////////////////////////////////////////////////////////

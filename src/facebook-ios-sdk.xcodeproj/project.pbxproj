@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F297DEB1655753F0069C586 /* FacebookPlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F297DEA1655753F0069C586 /* FacebookPlugin.mm */; };
 		2A68590615C1E37E001D4EDD /* FBSettings+Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A68590515C1E37E001D4EDD /* FBSettings+Internal.h */; };
 		5F7CB4201553ACC600C183CF /* FBLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F7CB41E1553ACC600C183CF /* FBLogger.h */; };
 		5F7CB4211553ACC600C183CF /* FBLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F7CB41F1553ACC600C183CF /* FBLogger.m */; };
@@ -174,6 +175,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1F297DEA1655753F0069C586 /* FacebookPlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FacebookPlugin.mm; sourceTree = "<group>"; };
 		2A68590515C1E37E001D4EDD /* FBSettings+Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FBSettings+Internal.h"; sourceTree = "<group>"; };
 		5F7CB41E1553ACC600C183CF /* FBLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBLogger.h; sourceTree = "<group>"; };
 		5F7CB41F1553ACC600C183CF /* FBLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FBLogger.m; sourceTree = "<group>"; };
@@ -383,6 +385,7 @@
 		08FB77AEFE84172EC02AAC07 /* FacebookSDK */ = {
 			isa = PBXGroup;
 			children = (
+				1F297DE91655753F0069C586 /* plugin */,
 				8527EC5615C9D3CF00660673 /* FBUserSettingsViewResources.bundle */,
 				DDDFFB2D15B4C4F4008A1040 /* FacebookSDKResources.bundle */,
 				AEA93B1311D52959000A4545 /* JSON */,
@@ -471,6 +474,14 @@
 				85E4AC7B15B63CC500F17346 /* FBViewController.m */,
 			);
 			name = FacebookSDK;
+			sourceTree = "<group>";
+		};
+		1F297DE91655753F0069C586 /* plugin */ = {
+			isa = PBXGroup;
+			children = (
+				1F297DEA1655753F0069C586 /* FacebookPlugin.mm */,
+			);
+			path = plugin;
 			sourceTree = "<group>";
 		};
 		32C88DFF0371C24200C91783 /* Other Sources */ = {
@@ -788,6 +799,7 @@
 				85E4AC7815B63CB600F17346 /* FBUserSettingsViewController.m in Sources */,
 				85E4AC7E15B63CC500F17346 /* FBViewController.m in Sources */,
 				85A928911611187F008699F1 /* FBNativeDialogs.m in Sources */,
+				1F297DEB1655753F0069C586 /* FacebookPlugin.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
