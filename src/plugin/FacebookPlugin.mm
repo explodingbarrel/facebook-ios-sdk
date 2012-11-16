@@ -1,4 +1,5 @@
 #import "Facebook.h"
+#import "FBSBJSON.h"
 
 extern "C"
 {
@@ -11,7 +12,7 @@ extern "C"
 
 - (Plugin*) initWithAppId: (NSString*)appId;
 - (BOOL)handleOpenURL:(NSURL *)url;
-- (void) login;
+- (void) login:(NSString*)scope;
 - (void) dialog: (NSString*)action params:(NSMutableDictionary*)params;
 - (void) setToken:(NSString*)token;
 
@@ -27,7 +28,21 @@ extern "C"
 
 @synthesize facebook;
 
-- (Plugin*) initWithAppId: (NSString*)appId 
+- (NSDictionary*)parseURLParams:(NSString *)query {
+    NSArray *pairs = [query componentsSeparatedByString:@"&"];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    for (NSString *pair in pairs) {
+        NSArray *kv = [pair componentsSeparatedByString:@"="];
+        NSString *val =
+        [[kv objectAtIndex:1]
+         stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        
+        [params setObject:val forKey:[kv objectAtIndex:0]];
+    }
+    return params;
+}
+
+- (Plugin*) initWithAppId: (NSString*)appId
 {
 	self = [super init];
 	if (self) 
@@ -59,8 +74,15 @@ extern "C"
 
 - (void) dialog: (NSString*)action params:(NSMutableDictionary*)params 
 {
-	NSLog(@"dialog: %@", action);
-	[facebook dialog:action andParams:params andDelegate:nil];
+	NSLog(@"dialog: %@, %@", action, params);
+	[facebook dialog:action andParams:params andDelegate:self];
+}
+
+- (void)dialogCompleteWithUrl:(NSURL *)url {
+    NSDictionary *params = [self parseURLParams:[url query]];
+    FBSBJSON *jsonWriter = [FBSBJSON new];
+    NSString *dialogResult = [jsonWriter stringWithObject:params];
+    UnitySendMessage("fb_callbacks", "OnDialog", [dialogResult UTF8String]);
 }
 
 - (BOOL)handleOpenURL:(NSURL *)url
@@ -76,6 +98,7 @@ extern "C"
 - (void) setToken:(NSString*)token
 {
 	facebook.accessToken = token;
+    facebook.expirationDate = [NSDate dateWithTimeIntervalSinceNow:3600];
 }
 
 - (void) login:(NSString*)scope
@@ -119,13 +142,12 @@ extern "C"
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	//
-    void _FacebookSetAccessToken()
+    void _FacebookSetAccessToken( const char* token )
 	{
         NSLog(@"-> _FacebookSetToken \n");
 		if ( plugin != nil )
 		{
-			NSString* token = [ [NSUserDefaults standardUserDefaults] stringForKey:@"access_token" ];
-			[plugin setToken:token ];
+			[plugin setToken:[NSString stringWithUTF8String:token] ];
 		}
 	}
 	
@@ -142,9 +164,16 @@ extern "C"
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	//
-	void _FacebookUI(const char* request, const char* data)
+	void _FacebookUI(const char* method, const char* params)
 	{
-        
+        if ( plugin != nil )
+		{
+            NSString* action        = [NSString stringWithUTF8String:method];
+            NSString* pstr          = [NSString stringWithUTF8String:params];
+            FBSBJSON *jsonReader    = [FBSBJSON new];
+            NSMutableDictionary* dic= [jsonReader objectWithString:pstr];
+            [plugin dialog:action params:dic];
+		}
 	}
     
     //////////////////////////////////////////////////////////////////////////////////
