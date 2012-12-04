@@ -6,27 +6,35 @@ extern "C"
     void UnitySendMessage(const char* name, const char* fn, const char* data);
 }
 
-@interface Plugin : NSObject<FBSessionDelegate, FBDialogDelegate>
+static NSString* kDialogBaseURL;
+static NSString* kSDKVersion;
+static NSString* kRedirectURL;
 
-@property (readwrite, retain) Facebook *facebook;
+@interface Plugin : NSObject<FBSessionDelegate, FBDialogDelegate>
+{
+    NSString* _appId;
+    FBDialog* _fbDialog;
+}
+
+//@property (readwrite, retain) Facebook *facebook;
 
 - (Plugin*) initWithAppId: (NSString*)appId;
 - (BOOL)handleOpenURL:(NSURL *)url;
-- (void) login:(NSString*)scope;
+- (void) login:(NSString*)scope allowUI:(bool)allowUI;
 - (void) dialog: (NSString*)action params:(NSMutableDictionary*)params;
 - (void) setToken:(NSString*)token;
 
-- (void)fbDidLogin;
-- (void)fbDidNotLogin:(BOOL)cancelled;
-- (void)fbDidLogout;
+//- (void)fbDidLogin;
+//- (void)fbDidNotLogin:(BOOL)cancelled;
+//- (void)fbDidLogout;
 
-- (void)fbDidExtendToken:(NSString*)accessToken expiresAt:(NSDate*)expiresAt;
-- (void)fbSessionInvalidated;
+//- (void)fbDidExtendToken:(NSString*)accessToken expiresAt:(NSDate*)expiresAt;
+//- (void)fbSessionInvalidated;
 @end
 
 @implementation Plugin
 
-@synthesize facebook;
+//@synthesize facebook;
 
 - (NSDictionary*)parseURLParams:(NSString *)query {
     NSArray *pairs = [query componentsSeparatedByString:@"&"];
@@ -47,12 +55,16 @@ extern "C"
 	self = [super init];
 	if (self) 
 	{
-		facebook = [ [Facebook alloc] initWithAppId:appId andDelegate:self ]; 
-		[facebook retain];
+        _appId = appId;
+        [FBSession setDefaultAppID:appId];
+        //facebook = [[Facebook alloc] initWithAppId:appId];
+		//facebook = [ [Facebook alloc] initWithAppId:appId andDelegate:self ];
+		//[facebook retain];
 	}
 	return self;
 }
 
+/*
 - (void)fbDidLogin
 {
 	NSString* accessToken = [ facebook accessToken ];
@@ -71,11 +83,41 @@ extern "C"
 	NSLog(@"fbDidLogout");
     UnitySendMessage("fb_callbacks", "OnLogout", "" );
 }
+*/ 
+
+- (void)dialog:(NSString *)action
+     andParams:(NSMutableDictionary *)params
+   andDelegate:(id <FBDialogDelegate>)delegate {
+    
+   [_fbDialog release];
+    
+   NSString *dialogURL = [kDialogBaseURL stringByAppendingString:action];
+   [params setObject:@"touch" forKey:@"display"];
+   [params setObject:kSDKVersion forKey:@"sdk"];
+   [params setObject:kRedirectURL forKey:@"redirect_uri"];
+    
+   [params setObject:_appId forKey:@"app_id"];
+    
+    FBSession* session = [FBSession activeSession];
+    
+   if (session && session.isOpen)
+   {
+       [params setValue:[session.accessToken stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding] forKey:@"access_token"];
+   }
+    
+    _fbDialog = [[FBDialog alloc] initWithURL:dialogURL
+                                           params:params
+                                  isViewInvisible:NO
+                             frictionlessSettings:nil
+                                         delegate:delegate];
+    
+    [_fbDialog show];
+}
 
 - (void) dialog: (NSString*)action params:(NSMutableDictionary*)params 
 {
 	NSLog(@"dialog: %@, %@", action, params);
-	[facebook dialog:action andParams:params andDelegate:self];
+	[self dialog:action andParams:params andDelegate:self];
 }
 
 - (void)dialogCompleteWithUrl:(NSURL *)url {
@@ -87,36 +129,39 @@ extern "C"
 
 - (BOOL)handleOpenURL:(NSURL *)url
 {
-	if ( facebook )
-	{
-		NSLog(@"handleOpenURL %@", url );
-		return [facebook handleOpenURL:url];
-	}
-	return NO;
+   FBSession* session = [FBSession activeSession];
+   if (session) {
+       return [session handleOpenURL:url];
+   }
+   return NO;
 }
 
-- (void) setToken:(NSString*)token
+- (void) login:(NSString*)scope allowUI:(bool)allowUI
 {
-	facebook.accessToken = token;
-    facebook.expirationDate = [NSDate dateWithTimeIntervalSinceNow:3600];
-}
-
-- (void) login:(NSString*)scope
-{
-	if ( facebook )
-	{
-        NSArray* permissions = [scope componentsSeparatedByString:@","];
-		[facebook authorize:permissions];
-	}
-}
-
-- (void)fbDidExtendToken:(NSString*)accessToken expiresAt:(NSDate*)expiresAt
-{
-    [self setToken:accessToken];
-}
-
-- (void)fbSessionInvalidated
-{
+    NSArray* permissions = [scope componentsSeparatedByString:@","];
+    
+    [FBSession openActiveSessionWithReadPermissions:permissions allowLoginUI:allowUI completionHandler:^(FBSession *session, FBSessionState state, NSError *error) {
+        switch(state)
+        {
+        case FBSessionStateOpen:
+            {
+                NSString* accessToken = [FBSession activeSession].accessToken;
+                UnitySendMessage("fb_callbacks", "OnAuthorize", [accessToken UTF8String]);
+            }
+                break;
+        case FBSessionStateClosedLoginFailed:
+            {
+                NSString *errorCode = [[error userInfo] objectForKey:FBErrorLoginFailedOriginalErrorCode];
+                NSString *errorReason = [[error userInfo] objectForKey:FBErrorLoginFailedReason];
+                BOOL userDidCancel = !errorCode && (!errorReason ||
+                                                    [errorReason isEqualToString:FBErrorLoginFailedReasonInlineCancelledValue]);
+                UnitySendMessage("fb_callbacks", "OnAuthorizeFailed",userDidCancel ? "1" : "0" );
+            }
+                break;
+            default:
+                break;
+        }
+    }];
 }
 
 
@@ -142,24 +187,24 @@ extern "C"
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	//
-    void _FacebookSetAccessToken( const char* token )
-	{
-        NSLog(@"-> _FacebookSetToken \n");
-		if ( plugin != nil )
-		{
-			[plugin setToken:[NSString stringWithUTF8String:token] ];
-		}
-	}
-	
-	//////////////////////////////////////////////////////////////////////////////////
-	//
-    void _FacebookLogin(const char* scope)
+    void _FacebookLogin(const char* scope, bool allowUI )
 	{
         NSLog(@"-> _FacebookLogin \n");
 		if ( plugin != nil )
 		{
-			[plugin login:[NSString stringWithUTF8String:scope] ];
+			[plugin login:[NSString stringWithUTF8String:scope] allowUI:allowUI ];
 		}
+	}
+    
+    //////////////////////////////////////////////////////////////////////////////////
+	//
+    void _FacebookLogout()
+	{
+        NSLog(@"-> _FacebookLogout \n");
+        FBSession* session = [FBSession activeSession];
+        if (session) {
+            [session closeAndClearTokenInformation];
+        }
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
