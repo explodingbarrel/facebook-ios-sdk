@@ -582,6 +582,7 @@ typedef void (^FBSessionReauthorizeResultHandler)(FBSession *session,
  in order for it to be useable for communication with Facebook.
  */
 + (FBSession*)activeSession;
++ (FBSession*)activeSessionIfOpen;
 
 /*!
  @abstract
