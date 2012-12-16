@@ -583,6 +583,7 @@ typedef void (^FBSessionReauthorizeResultHandler)(FBSession *session,
  */
 + (FBSession*)activeSession;
 + (FBSession*)activeSessionIfOpen;
++ (FBSession*)activeSessionNoAlloc;
 
 /*!
  @abstract

@@ -559,6 +559,10 @@ static FBSession *g_activeSession = nil;
     return [[g_activeSession retain] autorelease];
 }
 
++ (FBSession*)activeSessionNoAlloc {
+    return g_activeSession;
+}
+
 + (FBSession*)setActiveSession:(FBSession*)session {
     
     if (session != g_activeSession) {
