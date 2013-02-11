@@ -6,9 +6,9 @@ extern "C"
     void UnitySendMessage(const char* name, const char* fn, const char* data);
 }
 
-static NSString* kDialogBaseURL;
-static NSString* kSDKVersion;
-static NSString* kRedirectURL;
+static NSString* kDialogBaseURL = @"https://m.facebook.com/dialog/";
+static NSString* kSDKVersion = @"2";
+static NSString* kRedirectURL=  @"fbconnect://success";
 
 @interface Plugin : NSObject<FBDialogDelegate>
 {
