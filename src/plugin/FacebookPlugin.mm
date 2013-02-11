@@ -97,11 +97,19 @@ static NSString* kRedirectURL=  @"fbconnect://success";
 
 - (BOOL)handleOpenURL:(NSURL *)url
 {
-   FBSession* session = [FBSession activeSessionIfOpen];
+   FBSession* session = [FBSession activeSessionNoAlloc];
    if (session != nil) {
        return [session handleOpenURL:url];
    }
    return NO;
+}
+
+-(void)handleDidBecomeActive
+{
+    FBSession* session = [FBSession activeSessionNoAlloc];
+    if (session != nil) {
+        [session handleDidBecomeActive];
+    }
 }
 
 - (void) login:(NSString*)scope allowUI:(bool)allowUI
@@ -204,6 +212,18 @@ extern "C"
             return [plugin handleOpenURL:url];
 		}
         return false;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////
+	//
+    void _FacebookHandleDidBecomeActive()
+    {
+        NSLog(@"-> _FacebookHandleDidBecomeActive\n");
+        if ( plugin != nil )
+		{
+            [plugin handleDidBecomeActive];
+		}
+        
     }
 }
 
